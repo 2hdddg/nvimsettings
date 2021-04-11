@@ -7,6 +7,7 @@ set list listchars=tab:»·,trail:·,extends:#
 set tabstop=4 softtabstop=0 expandtab shiftwidth=4 smarttab
 set cursorline
 set colorcolumn=80
+set nowrap
 set nomodeline
 set noswapfile
 " Use simple/system clipboard
@@ -15,8 +16,12 @@ set signcolumn=yes
 " Skip banner on top of netrw
 let g:netrw_banner=0
 
+let mapleader = ";"
+
 " jk is escape
 inoremap jk <esc>
+" Keystroke savers
+nnoremap <leader>n <cmd>nohl<cr> " No hightlight
 
 "set completeopt-=preview
 "set completeopt=menuone,noinsert,noselect
@@ -44,6 +49,7 @@ Plug 'nvim-lua/popup.nvim'           " For telescope
 Plug 'nvim-lua/plenary.nvim'         " For telescope
 Plug 'nvim-telescope/telescope.nvim' " Fuzzy finder over lists
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'} " neovim 0.5 syntax highlighter experiment
+Plug 'honza/vim-snippets'            " Actual snippets
 call plug#end()
 colorscheme srcery
 
@@ -52,17 +58,18 @@ autocmd BufEnter * lua require'completion'.on_attach()
 set completeopt=menuone,noinsert,noselect
 " Avoid showing message extra message when using completion
 set shortmess+=c
-let g:completion_timer_cycle = 10
+let g:completion_timer_cycle = 5
 let g:completion_trigger_on_delete = 1
+let g:completion_enable_snippet = 'UltiSnips'
 
 " Setup fuzzy finding
-nnoremap <leader>ff <cmd>lua require('telescope.builtin').find_files()<cr>
-nnoremap <leader>fq <cmd>lua require('telescope.builtin').quickfix()<cr>
-nnoremap <leader>fb <cmd>lua require('telescope.builtin').buffers()<cr>
-nnoremap <leader>fh <cmd>lua require('telescope.builtin').help_tags()<cr>
-nnoremap <leader>fs <cmd>lua require('telescope.builtin').lsp_workspace_symbols()<cr>
-nnoremap <leader>fa <cmd>lua require('telescope.builtin').lsp_code_actions()<cr>
-nnoremap <leader>fr <cmd>lua require('telescope.builtin').lsp_range_code_actions()<cr>
+nnoremap <leader>f <cmd>lua require('telescope.builtin').find_files({ initial_mode = 'insert' })<cr>
+nnoremap <leader>q <cmd>lua require('telescope.builtin').quickfix()<cr>
+nnoremap <leader>a <cmd>lua require('telescope.builtin').lsp_code_actions()<cr>
+
+
+" Snippets
+"
 
 " Setup fancy highlighting
 lua <<EOF
@@ -75,12 +82,29 @@ require'nvim-treesitter.configs'.setup {
 }
 EOF
 
+" Shows LSP diagnostics in a pop up instead of virtual text
+lua <<EOF
+vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(
+    vim.lsp.diagnostic.on_publish_diagnostics, {
+        virtual_text = false,
+        underline = true,
+        signs = true,
+    }
+)
+EOF
+autocmd CursorHold * lua vim.lsp.diagnostic.show_line_diagnostics()
+" autocmd CursorHoldI * silent! lua vim.lsp.buf.signature_help()
+set updatetime = 300 " CursorHold trigger time (and write to swap)
+
 " Setup telescope fuzzy finder
 lua <<EOF
 local telescope = require'telescope'
 local previewers = require'telescope.previewers'
 telescope.setup{
-    qflist_previewer = previewers.vim_buffer_qflist.new
+  defaults = {
+   initial_mode = 'normal',
+   sorting_strategy = 'descending',
+  }
 }
 EOF
 
@@ -89,9 +113,14 @@ EOF
 noremap ,d <cmd>lua vim.lsp.buf.definition()<CR>
 noremap ,c <cmd>lua vim.lsp.buf.incoming_calls()<CR>
 noremap ,r <cmd>lua vim.lsp.buf.references()<CR>
+"noremap ,r <cmd>lua require('telescope.builtin').lsp_references({shorten_path = false})<CR>
+noremap ,D <cmd>lua require('telescope.builtin').lsp_document_diagnostics()<CR>
 noremap ,i <cmd>lua vim.lsp.buf.implementation()<CR>
 noremap ,h <cmd>lua vim.lsp.buf.hover()<CR>
 noremap ,n <cmd>lua vim.lsp.buf.rename()<CR>
+" Standard LSP stuff but specific for jdtls plugin
+noremap ,a <Cmd>lua require('jdtls').code_action()<CR>
+noremap ,f <Cmd>lua require('jdtls').code_action(false, 'refactor')<CR>
 
 " Go
 autocmd FileType go setlocal noexpandtab

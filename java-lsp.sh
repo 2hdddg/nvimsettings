@@ -14,7 +14,7 @@ $(echo "$JAVA_HOME")/bin/java \
   -Xmx2G \
   -jar $(echo "$JAR") \
   -configuration "$JDT/config_linux" \
-  -data "${1:-$HOME/jws}" \
+  -data "${1:-$HOME/jws2}" \
   --add-modules=ALL-SYSTEM \
   --add-opens java.base/java.util=ALL-UNNAMED \
   --add-opens java.base/java.lang=ALL-UNNAMED
