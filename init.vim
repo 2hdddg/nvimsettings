@@ -94,7 +94,7 @@ vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(
 EOF
 autocmd CursorHold * lua vim.lsp.diagnostic.show_line_diagnostics()
 " autocmd CursorHoldI * silent! lua vim.lsp.buf.signature_help()
-set updatetime = 300 " CursorHold trigger time (and write to swap)
+set updatetime=300 " CursorHold trigger time (and write to swap)
 
 " Setup telescope fuzzy finder
 lua <<EOF
@@ -102,7 +102,7 @@ local telescope = require'telescope'
 local previewers = require'telescope.previewers'
 telescope.setup{
   defaults = {
-   initial_mode = 'normal',
+   initial_mode = 'insert',
    sorting_strategy = 'descending',
   }
 }
@@ -147,4 +147,5 @@ EOF
 augroup lsp
     au!
     au FileType java lua require'jdtls'.start_or_attach({cmd = {'java-lsp.sh'}})
+    " au FileType java lua require'jdtls'.start_or_attach({cmd = {'java-lsp.sh', '' .. vim.fn.getcwd()}})
 augroup end
