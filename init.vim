@@ -40,7 +40,8 @@ endif
 " Plugins, using https://github.com/junegunn/vim-plug
 call plug#begin('~/.nvimplug')
 Plug 'neovim/nvim-lspconfig'         " LSP configuration support
-Plug 'mfussenegger/nvim-jdtls'      " Enhanced Java LSP support
+Plug 'mfussenegger/nvim-jdtls'       " Enhanced Java LSP support
+Plug 'mfussenegger/nvim-dap'         " Debugger support
 Plug 'nvim-lua/completion-nvim'      " Auto-complete
 Plug 'vim-airline/vim-airline'       " Status bar lull lull
 Plug 'srcery-colors/srcery-vim'      " Theme
@@ -126,6 +127,12 @@ noremap ,f <Cmd>lua require('jdtls').code_action(false, 'refactor')<CR>
 autocmd FileType go setlocal noexpandtab
 autocmd BufWritePre *.go lua vim.lsp.buf.formatting_sync(nil, 1000)
 
+" DAP debugging
+command! Dtoggle lua require('dap').toggle_breakpoint()
+command! Drepl lua require('dap').repl.open()
+command! Dcont lua require('dap').continue()
+command! Dlast lua require('dap').run_last()
+
 lua <<EOF
 require'lspconfig'.gopls.setup{}
 EOF
@@ -137,15 +144,7 @@ require'lspconfig'.pyls.setup{}
 EOF
 
 " Java
-"autocmd BufWritePre *.java lua vim.lsp.buf.formatting_sync(nil, 1000)
-"lua <<EOF
-"local lspconfig = require'lspconfig'
-"lspconfig.jdtls.setup{
-"    root_dir = lspconfig.util.root_pattern('.git')
-"}
-"EOF
-augroup lsp
-    au!
-    au FileType java lua require'jdtls'.start_or_attach({cmd = {'java-lsp.sh'}})
-    " au FileType java lua require'jdtls'.start_or_attach({cmd = {'java-lsp.sh', '' .. vim.fn.getcwd()}})
+augroup jdtls_lsp
+    autocmd!
+    autocmd FileType java lua require'my_jdtls_setup'.setup()
 augroup end
